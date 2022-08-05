@@ -14,15 +14,13 @@ class Data {
     }
     ;
 }
-class kvPair {
-}
-;
 class Analyzer {
     constructor() {
-        this.yearProdnMap = [{}];
+        this.kvPairsMap = new Map();
+        this.indexProdnMap = new Map();
     }
     ;
-    computeActiveRobos(data, numProjects, duration, decayArray) {
+    computeActiveRobos(numProjects, duration, decayArray) {
         let activeArray = [10, 20, 30, 50];
         return (activeArray);
     }
@@ -44,7 +42,7 @@ class Analyzer {
         }
     }
     ;
-    populateData(callback) {
+    populateData(numProjs, duration, decayIdx, callback) {
         const files = fs.readdir(robo_folder, (err, files) => {
             if (err) {
                 console.log("Folder read error");
@@ -55,14 +53,12 @@ class Analyzer {
                 let year = EPOCH_START;
                 let isValid = false;
                 let roboData;
-                let filesRead = 0;
                 readFile(robo_folder + files[fcount], 'utf8', (err, data) => {
                     if (err) {
                         console.log("Error reading file!");
                         return;
                     }
                     let ln = 0;
-                    console.log(`Reading file ${fcount}`);
                     data.split(/\r?\n/).forEach(line => {
                         if (ln == 0) {
                             year = +line;
@@ -76,11 +72,17 @@ class Analyzer {
                             }
                         }
                     });
-                    filesRead++;
-                    let kvp = new kvPair();
-                    kvp[year] = roboData;
-                    console.log(`Pushing data for ${kvp[year].prodn} files done ${filesRead}`);
-                    this.yearProdnMap.push(kvp);
+                    if (roboData.prodn.length) {
+                        console.log(`Pushing data for ${year}`);
+                        this.kvPairsMap.set(year, roboData);
+                        if (fcount === this.kvPairsMap.size) {
+                            console.log("Completed read operations");
+                            this.printProdnMap();
+                            var projN = this.computeActiveRobos(numProjs, duration, decayIdx);
+                            callback(true, projN);
+                        }
+                    }
+                    ;
                 });
             }
             ;
@@ -88,13 +90,26 @@ class Analyzer {
     }
     ;
     deleteData() {
+        if (fs.existsSync(robo_folder)) {
+            fs.rm(robo_folder, { recursive: true }, () => console.log('done removing the folder'));
+        }
     }
     ;
     printProdnMap() {
-        this.yearProdnMap.sort();
-        if (this.yearProdnMap.length) {
-            console.log(`List of production count Rn from ${this.yearProdnMap.length}`);
-        }
+        var mapAsc = new Map([...this.kvPairsMap.entries()].sort());
+        var keys = [];
+        var prodnNum = [];
+        mapAsc.forEach((value, key, map) => {
+            let monthIndex = this.getMonthIndex(key);
+            value.prodn.forEach((rn) => {
+                this.indexProdnMap.set(monthIndex++, rn);
+            });
+            keys.push(monthIndex);
+        });
+        console.log(this.indexProdnMap);
+    }
+    getMonthIndex(year) {
+        return (year - EPOCH_START) * 12;
     }
 }
 exports.Analyzer = Analyzer;

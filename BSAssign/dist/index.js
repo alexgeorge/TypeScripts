@@ -28,10 +28,14 @@ app.all('/all', (req, res) => {
 app.post('/analyze', (req, res) => {
     const buffer = req.body;
     const lines = req.body.toString().split(/\r\n|\r|\n/);
-    analyzer.populateData((success) => {
+    var numProjs = 0;
+    var duration = 0;
+    var decayIndex = [];
+    analyzer.populateData(numProjs, duration, decayIndex, (success, Pn) => {
         if (success) {
-            console.log("Populated the data successfully");
-            return res.sendStatus(200);
+            console.log(`Computed the project starts ${Pn}`);
+            const outStr = Pn.toString().replace(/,/g, "\n");
+            return res.status(200).send(outStr);
         }
         else {
             console.log("Failed to populate");
