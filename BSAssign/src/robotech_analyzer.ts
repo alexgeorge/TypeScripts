@@ -37,6 +37,7 @@ class Analyzer implements IAnalyzer {
     //and the production number for that particular month.
     //A gap in the value of index indicate 0 production on that month
     indexProdnMap = new Map<number, number>();
+    firstMonthIndx: number = 0;
 
     constructor (){};
 
@@ -87,8 +88,6 @@ class Analyzer implements IAnalyzer {
     //Return an array of Pn where Pn is the optimal start time with max robots 
     //for the n projects of D duration 
     scheduleProjects(numProjects: number, duration: number, rnMap: Map<number, number>) : number[] {
-
-        let projSchedule: number [] = [];
         //hold the subarray sum starting from each index
         let subArraySumMap = new Map<number, number>();
         const firstIdx = rnMap.entries().next().value[0];
@@ -128,8 +127,10 @@ class Analyzer implements IAnalyzer {
             }
             skipped = ski;
         }
-        console.log(maxRnMap);      
-        return (projSchedule);
+        console.log(maxRnMap);
+        let idxArr = this.normaliseEpochMonthIdx(maxRnMap.entries().next().value[1])
+        console.log(idxArr);      
+        return (idxArr);
     }
 
     //Find the possible cobinations for n projects 
@@ -161,7 +162,7 @@ class Analyzer implements IAnalyzer {
             maxSum += value;
             rnArr.push(key);
             prevKey = key;
-            if (projCount > numProjects){
+            if (projCount >= numProjects){
                 //sort the entries in ascending order 
                 rnArr.sort();
                 distributionMap.set(maxSum, rnArr);
@@ -268,6 +269,7 @@ class Analyzer implements IAnalyzer {
         var mapAsc = new Map([...this.kvPairsMap.entries()].sort());
         var keys: number [] = [];
         var prodnNum: Data [] = [];
+        this.firstMonthIndx = this.getMonthIndex(mapAsc.entries().next().value[0]);
         mapAsc.forEach((value: Data, key: number, map)=>{
             let monthIndex = this.getMonthIndex(key);
             value.prodn.forEach((rn)=>{
@@ -278,13 +280,18 @@ class Analyzer implements IAnalyzer {
         console.log(this.indexProdnMap);
     }
 
-    getMonthIndex(year: number){
+    getMonthIndex(year: number): number{
         return (year - EPOCH_START) * 12;
     }
 
-    normaliseEpochMonthIdx(monthIdx: number, yearStart: number): number{
-        let normlisedIdx = 0;
-
+    normaliseEpochMonthIdx(monthIdx: number[]): number[]{
+        let normlisedIdx: number [] = [];
+        let normIdx = 0;
+        for (let i=0; i<monthIdx.length; ++i){
+            //jan is 0 in our start, compensate it            
+            normIdx = monthIdx[i]-this.firstMonthIndx+1;
+            normlisedIdx.push(normIdx); 
+        }
         return normlisedIdx;
     }
 }
