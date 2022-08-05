@@ -27,10 +27,13 @@ app.all('/all', (req, res) => {
 });
 app.post('/analyze', (req, res) => {
     const buffer = req.body;
-    const lines = req.body.toString().split(/\r\n|\r|\n/);
-    var numProjs = 0;
-    var duration = 0;
+    let lines = buffer.toString().split(/\r\n|\r|\n/);
+    var numProjs = +lines[0];
+    var duration = +lines[1];
     var decayIndex = [];
+    for (let i = 2; i < lines.length; ++i) {
+        decayIndex.push(lines[i]);
+    }
     analyzer.populateData(numProjs, duration, decayIndex, (success, Pn) => {
         if (success) {
             console.log(`Computed the project starts ${Pn}`);
@@ -39,13 +42,13 @@ app.post('/analyze', (req, res) => {
         }
         else {
             console.log("Failed to populate");
-            return res.sendStatus(300);
+            return res.status(400).send("Error in data read!");
         }
     });
-    console.log(`Analysis to be done for ${lines[0]} projects, each ${lines[1]} months duration:-\n` + lines);
 });
 app.delete('/data', (req, res) => {
     console.log(`Request for deleting the data!`);
+    analyzer.deleteData();
     return res.sendStatus(200);
 });
 const PORT = 2468;

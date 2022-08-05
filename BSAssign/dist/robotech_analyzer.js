@@ -4,6 +4,8 @@ exports.Analyzer = void 0;
 const MAX_MONTHS = 1000;
 const EPOCH_START = 1970;
 const MAX_YEAR = 100000000;
+const MAX_PROJECTS = 10;
+const MAX_DURATION = 10;
 const robo_folder = "./robodata/";
 const { readFile, writeFile } = require('fs');
 const fs = require('fs');
@@ -21,10 +23,46 @@ class Analyzer {
     }
     ;
     computeActiveRobos(numProjects, duration, decayArray) {
-        let activeArray = [10, 20, 30, 50];
-        return (activeArray);
+        if (numProjects > MAX_PROJECTS || duration > MAX_DURATION) {
+            console.log("ERROR: D or  N Exceeding the limits!");
+            return [];
+        }
+        let maxKey = 0;
+        let indexActiveRn = new Map();
+        for (let key of this.indexProdnMap.keys()) {
+            let val = this.indexProdnMap.get(key);
+            let i = 0;
+            let preVal = 0;
+            decayArray.forEach(element => {
+                if (maxKey > key + i) {
+                    let pv = indexActiveRn.get(key + i);
+                    if (pv != undefined) {
+                        preVal = pv;
+                    }
+                }
+                if (val != undefined) {
+                    indexActiveRn.set(key + i, preVal + val * (1 - element));
+                    preVal = 0;
+                    maxKey = key + i;
+                    i++;
+                }
+            });
+        }
+        console.log(indexActiveRn);
+        return (this.scheduleProjects(numProjects, duration, indexActiveRn));
     }
     ;
+    scheduleProjects(numProjects, duration, rnMap) {
+        let subArraySum = [];
+        let projSchedule = [];
+        for (let key of rnMap.keys()) {
+            let val = rnMap.get(key);
+            alert(typeof val);
+            console.log(val);
+        }
+        ;
+        return (projSchedule);
+    }
     saveData(data, year) {
         if (!fs.existsSync(robo_folder)) {
             fs.mkdirSync(robo_folder);
@@ -33,7 +71,7 @@ class Analyzer {
             let fileName = robo_folder + "robo_" + year + ".dat";
             writeFile(fileName, data, 'utf8', (err) => {
                 if (err) {
-                    console.log(`Error in writing ${fileName}`);
+                    console.log(`ERROR: Error in writing ${fileName}`);
                     return;
                 }
                 console.log(`Written ${fileName}`);
@@ -45,7 +83,8 @@ class Analyzer {
     populateData(numProjs, duration, decayIdx, callback) {
         const files = fs.readdir(robo_folder, (err, files) => {
             if (err) {
-                console.log("Folder read error");
+                console.log("ERROR: Folder read error");
+                callback(false, []);
                 return;
             }
             var fcount = 0;
@@ -55,7 +94,7 @@ class Analyzer {
                 let roboData;
                 readFile(robo_folder + files[fcount], 'utf8', (err, data) => {
                     if (err) {
-                        console.log("Error reading file!");
+                        console.log("ERROR: Error reading file!");
                         return;
                     }
                     let ln = 0;
@@ -91,7 +130,9 @@ class Analyzer {
     ;
     deleteData() {
         if (fs.existsSync(robo_folder)) {
-            fs.rm(robo_folder, { recursive: true }, () => console.log('done removing the folder'));
+            fs.rm(robo_folder, { recursive: true }, () => {
+                console.log('Done removing the folder!');
+            });
         }
     }
     ;
