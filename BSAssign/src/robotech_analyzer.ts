@@ -103,9 +103,9 @@ class Analyzer implements IAnalyzer {
             }
             subArraySumMap.set(key,subSum);
         };
-        console.log(subArraySumMap);
         //Get the sorted map based on the total robo use per project
         const sortMap = new Map([...subArraySumMap.entries()].sort((a,b) => b[1]-a[1]));
+        console.log(sortMap);
         //skipped array indicate that we have some upper level months discarded
         //due to project span constraint. So we have to another round of ComputeMaxRn
         let startKey = sortMap.entries().next().value[0];
@@ -288,8 +288,12 @@ class Analyzer implements IAnalyzer {
         let normlisedIdx: number [] = [];
         let normIdx = 0;
         for (let i=0; i<monthIdx.length; ++i){
-            //jan is 0 in our start, compensate it            
-            normIdx = monthIdx[i]-this.firstMonthIndx+1;
+            //jan is 0 in our start, compensate it. 
+            //Output representing the inex from starting year
+            //so the months should be counted from the start year
+            //Make it modular if we expect the month only            
+            //normIdx = (monthIdx[i]-this.firstMonthIndx+1) % 12;
+            normIdx = (monthIdx[i]-this.firstMonthIndx+1);
             normlisedIdx.push(normIdx); 
         }
         return normlisedIdx;
