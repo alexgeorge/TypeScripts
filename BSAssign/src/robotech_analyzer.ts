@@ -91,7 +91,7 @@ class Analyzer implements IAnalyzer {
         //hold the subarray sum starting from each index
         let subArraySumMap = new Map<number, number>();
         const firstIdx = rnMap.entries().next().value[0];
-        const lastIdx = firstIdx + rnMap.size - 1;
+        const lastIdx = [...rnMap][rnMap.size -1][0];
 
         for (let key of rnMap.keys()){
             let subSum = 0;
@@ -99,8 +99,11 @@ class Analyzer implements IAnalyzer {
                 if (key+i > lastIdx){
                     break;
                 }
-                subSum += Number(rnMap.get(key+i));
+                if (rnMap.get(key+i) != undefined){
+                    subSum += Number(rnMap.get(key+i));        
+                }
             }
+            //console.log(`key [ ${key} ] sum [  ${subSum} ]`);
             subArraySumMap.set(key,subSum);
         };
         //Get the sorted map based on the total robo use per project

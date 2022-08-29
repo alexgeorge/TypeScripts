@@ -51,14 +51,16 @@ class Analyzer {
     scheduleProjects(numProjects, duration, rnMap) {
         let subArraySumMap = new Map();
         const firstIdx = rnMap.entries().next().value[0];
-        const lastIdx = firstIdx + rnMap.size - 1;
+        const lastIdx = [...rnMap][rnMap.size - 1][0];
         for (let key of rnMap.keys()) {
             let subSum = 0;
             for (let i = 0; i < duration; ++i) {
                 if (key + i > lastIdx) {
                     break;
                 }
-                subSum += Number(rnMap.get(key + i));
+                if (rnMap.get(key + i) != undefined) {
+                    subSum += Number(rnMap.get(key + i));
+                }
             }
             subArraySumMap.set(key, subSum);
         }
@@ -220,7 +222,7 @@ class Analyzer {
         let normlisedIdx = [];
         let normIdx = 0;
         for (let i = 0; i < monthIdx.length; ++i) {
-            normIdx = (monthIdx[i] - this.firstMonthIndx + 1) % 12;
+            normIdx = (monthIdx[i] - this.firstMonthIndx + 1);
             normlisedIdx.push(normIdx);
         }
         return normlisedIdx;
